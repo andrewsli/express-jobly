@@ -1,14 +1,18 @@
 /**
  * Generate a selective update query based on a request body:
  *
- * - table: where to make the query
+ * - table: where to make the query 
+ * 'companies'
  * - items: an object with keys of columns you want to update and values with
  *          updated values
+ * {name: Facebook, num_employees: 35000, description: ...}
  * - key: the column that we query by (e.g. username, handle, id)
+ *  handle
  * - id: current record ID
- *
+ * FB
  * Returns object containing a DB query as a string, and array of
  * string values to be updated
+ * {query, values}
  *
  */
 
