@@ -25,33 +25,33 @@ router.get('/', async function (req, res, next) {
     let companies = await Company.search(search, min_employees, max_employees);
     return res.json({ companies });
   } catch (err) {
-    let formattedError = new ExpressError(err.message,400);
-    next(formattedError);
+    let formattedError = new ExpressError(err.message, 400);
+    return next(formattedError);
   }
 });
 
 /** POST / - post a new company
  *
- * {handle, name, num_employees, description, logo}=> {company: companyData}
+ * {handle, name, num_employees, description, logo} => {company: companyData}
  *
  **/
 router.post('/', async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, createCompanySchema);
 
-    if(!result.valid) {
+    if (!result.valid) {
       let listOfErrors = result.errors.map(error => error.stack);
       let error = new ExpressError(listOfErrors, 400);
       return next(error);
     }
-    
+
     let { handle, name, num_employees, description, logo } = req.body;
     let company = await Company.create(handle, name, num_employees, description, logo);
 
     return res.json({ company });
   } catch (err) {
     let formattedError = new ExpressError(err.message, 400);
-    next(formattedError);
+    return next(formattedError);
   }
 });
 
@@ -66,8 +66,8 @@ router.get('/:handle', async function (req, res, next) {
     let company = await Company.get(handle);
     return res.json({ company });
   } catch (err) {
-    let formattedError = new ExpressError(err.message,400);
-    next(formattedError);
+    let formattedError = new ExpressError(err.message, 400);
+    return next(formattedError);
   }
 });
 
@@ -81,7 +81,7 @@ router.patch('/:handle', async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, updateCompanySchema);
 
-    if(!result.valid) {
+    if (!result.valid) {
       let listOfErrors = result.errors.map(error => error.stack);
       let error = new ExpressError(listOfErrors, 400);
       return next(error);
@@ -91,8 +91,8 @@ router.patch('/:handle', async function (req, res, next) {
     let company = await Company.update(req.params.handle, items);
     return res.json({ company });
   } catch (err) {
-    let formattedError = new ExpressError(err.message,404);
-    next(formattedError);
+    let formattedError = new ExpressError(err.message, 404);
+    return next(formattedError);
   }
 });
 
@@ -107,7 +107,7 @@ router.delete('/:handle', async function (req, res, next) {
     return res.json(result);
   } catch (err) {
     let formattedError = new ExpressError(err.message, 404)
-    next(formattedError);
+    return next(formattedError);
   }
 });
 

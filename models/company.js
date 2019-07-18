@@ -1,11 +1,11 @@
 // Company class for jobly
 const db = require("../db");
-const sqlForPartialUpdate = require("../helpers/partialUpdate")
+const sqlForPartialUpdate = require("../helpers/partialUpdate");
 
 const MAX_COMPANY_SIZE = 80000000;
 class Company {
 
-  /** get companies
+  /** search companies
    * 
    * Accepts search term, min_employees, and max_employees 
    * returns [{handle: "FB", name: "Facebook"}, {handle: "G", name: "Google"}, ...]
@@ -41,7 +41,7 @@ class Company {
 
   /** create a company
    * 
-   * (handle, name, num_employees, description, logo) { companyData }
+   * (handle, name, num_employees, description, logo) => { companyData }
    * 
    */
   static async create(handle, name, num_employees, description, logo) {
@@ -51,7 +51,7 @@ class Company {
         VALUES ($1, $2, $3, $4, $5)
         RETURNING *;`,
         [handle, name, num_employees, description, logo]
-      )
+      );
       return company.rows[0];
     } catch (err) {
       throw new Error("Company handle/name already exists");
@@ -63,7 +63,7 @@ class Company {
    * handle => { companyData }
    */
   static async get(handle) {
-    
+
     let company = await db.query(
       `SELECT *
       FROM companies
@@ -81,14 +81,14 @@ class Company {
   /** update a company by handle
    * 
    * (handle, {name, num_employees, description, logo_url}) =>
-   * {company: companyData}
+   * {companyData}
    * 
    */
   static async update(handle, items) {
     let sqlQuery = sqlForPartialUpdate('companies', items, 'handle', handle);
     let company = await db.query(sqlQuery.query, sqlQuery.values);
 
-    if(company.rowCount===0){
+    if (company.rowCount === 0) {
       throw new Error(`Company not found.`);
     }
 
@@ -100,19 +100,19 @@ class Company {
    * => {message: "Company deleted"}
    * 
    */
-  static async delete(handle){
+  static async delete(handle) {
     let result = await db.query(
       `DELETE FROM companies
       WHERE handle = $1
       RETURNING *`,
       [handle]
     );
-    
-    if (result.rowCount === 0){
+
+    if (result.rowCount === 0) {
       throw new Error("Company not found.");
     }
 
-    return {message: "Company deleted"}
+    return { message: "Company deleted" }
   }
 }
 

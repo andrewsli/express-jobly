@@ -40,15 +40,27 @@ describe("Company model", function () {
 
   describe("Company.search", function () {
 
-    test("searches all companies with no params passed", function () {
-      let response = Company.search();
-      expect(response).resolves.toEqual([{ "handle": "FB", "name": "Facebook" }, { "handle": "G", "name": "Google" }]);
+    test("searches all companies with no params passed", async function () {
+      let response = await Company.search();
+      expect(response).toEqual([{ "handle": "FB", "name": "Facebook" }, { "handle": "G", "name": "Google" }]);
     });
 
-    test("searches companies based on parameters passed: search, min_employees, max_employees", function () {
-      let response = Company.search("face", 10000, 50000);
+    test("searches companies with all parameters passed: search, min_employees, max_employees", async function () {
+      let response = await Company.search("face", 10000, 50000);
 
-      expect(response).resolves.toEqual([{ "handle": "FB", "name": "Facebook" }]);
+      expect(response).toEqual([{ "handle": "FB", "name": "Facebook" }]);
+    });
+
+    test("searches companies with only min_employees", async function () {
+      let response = await Company.search('', 10000);
+
+      expect(response).toEqual([{ "handle": "FB", "name": "Facebook" }, { "handle": "G", "name": "Google" }]);
+    });
+
+    test("searches companies with only max_employees", async function () {
+      let response = await Company.search('', 0, 35000);
+
+      expect(response).toEqual([{ "handle": "FB", "name": "Facebook" }]);
     });
 
     test("throws error if min_employees > max_employees", function () {
@@ -114,21 +126,21 @@ describe("Company model", function () {
       });
     });
 
-    test("throws error if company does not exist", async function () {
-      let response = Company.update('fake', { description: "Fined $5 billion" } );
+    test("throws error if company does not exist", function () {
+      let response = Company.update('fake', { description: "Fined $5 billion" });
 
       expect(response).rejects.toThrowError(new Error("Company not found."));
     });
   });
 
-  describe("Company.delete", function() {
+  describe("Company.delete", function () {
 
-    test("deletes a company", async function() {
+    test("deletes a company", async function () {
       let response = await Company.delete('FB');
       expect(response).toEqual({ message: 'Company deleted' });
     });
 
-    test("throws error if company not found", function() {
+    test("throws error if company not found", function () {
       let response = Company.delete('fake');
 
       expect(response).rejects.toThrowError(new Error("Company not found."));
