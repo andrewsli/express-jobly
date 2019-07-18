@@ -21,7 +21,7 @@ router.get('/', async function (req, res, next) {
     let search = req.query.search;
     let min_employees = +req.query.min_employees || req.query.min_employees;
     let max_employees = +req.query.max_employees || req.query.max_employees;
-    
+
     let companies = await Company.search(search, min_employees, max_employees);
     return res.json({ companies });
   } catch (err) {
@@ -103,8 +103,8 @@ router.patch('/:handle', async function (req, res, next) {
  */
 router.delete('/:handle', async function (req, res, next) {
   try {
-    await Company.delete(req.params.handle);
-    return res.json({message: "Company deleted"});
+    let result = await Company.delete(req.params.handle);
+    return res.json(result);
   } catch (err) {
     let formattedError = new ExpressError(err.message, 404)
     next(formattedError);

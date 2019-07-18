@@ -13,7 +13,7 @@ class Company {
    */
   static async search(search, min_employees = 0, max_employees = MAX_COMPANY_SIZE) {
     if (min_employees > max_employees) {
-      throw new Error("Min employees must be less than max employees.", 400);
+      throw new Error("Min employees must be less than max employees.");
     }
 
     if (!search) {
@@ -63,6 +63,7 @@ class Company {
    * handle => { companyData }
    */
   static async get(handle) {
+    
     let company = await db.query(
       `SELECT *
       FROM companies
@@ -71,7 +72,7 @@ class Company {
     );
 
     if (company.rowCount === 0) {
-      throw new Error(`Company not found.`, 400)
+      throw new Error(`Company not found.`);
     }
 
     return company.rows[0];
@@ -88,7 +89,7 @@ class Company {
     let company = await db.query(sqlQuery.query, sqlQuery.values);
 
     if(company.rowCount===0){
-      throw new Error(`Company not found.`, 404);
+      throw new Error(`Company not found.`);
     }
 
     return company.rows[0];
@@ -106,10 +107,12 @@ class Company {
       RETURNING *`,
       [handle]
     );
+    
     if (result.rowCount === 0){
       throw new Error("Company not found.");
     }
-    return;
+
+    return {message: "Company deleted"}
   }
 }
 
