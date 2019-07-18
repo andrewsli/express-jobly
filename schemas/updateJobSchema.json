@@ -4,12 +4,7 @@
     "$id": "http://example.com/root.json",
     "type": "object",
     "title": "The Root Schema",
-    "required": [
-      "title",
-      "salary",
-      "equity",
-      "company_handle"
-    ],
+    "required": [],
     "properties": {
       "title": {
         "$id": "#/properties/title",
@@ -32,7 +27,7 @@
       },
       "equity": {
         "$id": "#/properties/equity",
-        "type": "integer",
+        "type": "number",
         "title": "The Equity Schema",
         "default": 0,
         "examples": [

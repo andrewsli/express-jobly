@@ -3,6 +3,7 @@ const app = express();
 const ExpressError = require("../helpers/expressError");
 const router = express.Router();
 const Company = require("../models/company");
+const Job = require("../models/job")
 const jsonschema = require('jsonschema');
 const createCompanySchema = require('../schemas/createCompanySchema.json');
 const updateCompanySchema = require('../schemas/updateCompanySchema.json');
@@ -64,7 +65,8 @@ router.get('/:handle', async function (req, res, next) {
   try {
     handle = req.params.handle;
     let company = await Company.get(handle);
-    return res.json({ company });
+    let jobs = await Company.getJobs("FB");
+    return res.json({ company, jobs });
   } catch (err) {
     let formattedError = new ExpressError(err.message, 400);
     return next(formattedError);

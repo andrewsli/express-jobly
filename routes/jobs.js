@@ -19,17 +19,12 @@ app.use(express.json());
  * 
  **/
 router.get('/', async function (req, res, next) {
-  try {
-    let search = req.query.search;
-    let min_salary = +req.query.min_salary || req.query.min_salary;
-    let min_equity = +req.query.min_equity || req.query.min_equity;
+  let search = req.query.search;
+  let min_salary = +req.query.min_salary || req.query.min_salary;
+  let min_equity = +req.query.min_equity || req.query.min_equity;
 
-    let jobs = await Job.search(search, min_salary, min_equity);
-    return res.json({ jobs });
-  } catch (err) {
-    let formattedError = new ExpressError(err.message, 400);
-    return next(formattedError);
-  }
+  let jobs = await Job.search(search, min_salary, min_equity);
+  return res.json({ jobs });
 });
 
 /** POST / - post a new job
@@ -41,12 +36,12 @@ router.post('/', async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, createJobSchema);
 
-    if(!result.valid){
+    if (!result.valid) {
       let listOfErrors = result.errors.map(error => error.stack);
       let error = new ExpressError(listOfErrors, 400);
       return next(error);
     }
-    
+
     let { title, salary, equity, company_handle } = req.body;
     let job = await Job.create(title, salary, equity, company_handle);
 

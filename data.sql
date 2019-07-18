@@ -30,7 +30,7 @@ CREATE TABLE jobs (
     salary float NOT NULL,
     equity float NOT NULL CHECK (equity <= 1),
     company_handle text NOT NULL REFERENCES companies(handle) ON DELETE CASCADE,
-    date_posted DATE DEFAULT CURRENT_DATE
+    date_posted DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
 INSERT INTO jobs (title, salary, equity, company_handle)
@@ -47,4 +47,25 @@ VALUES (
     15000000.00,
     .10,
     'G'
+);
+
+CREATE TABLE users (
+    username text PRIMARY KEY,
+    password text NOT NULL,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
+    email text NOT NULL UNIQUE,
+    photo_url text DEFAULT 'https://icon-library.net/images/default-user-icon/default-user-icon-4.jpg',
+    is_admin boolean NOT NULL DEFAULT FALSE
+);
+
+INSERT INTO users
+VALUES (
+    'testuser',
+    'password',
+    'test',
+    'user',
+    'testuser@gmail.com',
+    'testuser.jpg',
+    'false'
 );

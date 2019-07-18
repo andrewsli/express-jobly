@@ -5,29 +5,13 @@ const request = require("supertest");
 const app = require("../../app");
 const db = require("../../db");
 const Company = require("../../models/company");
+const {SEED_DB_SQL} = require("../../config");
 
 describe("Company model", function () {
 
   beforeEach(async () => {
     await db.query(`DELETE FROM companies;`);
-    await db.query(
-      `INSERT INTO companies
-      VALUES (
-          'FB',
-          'Facebook',
-          35000,
-          'Social media giant',
-          'https://image.flaticon.com/icons/png/512/124/124010.png'
-      );
-      
-      INSERT INTO companies
-      VALUES (
-          'G',
-          'Google',
-          72000,
-          'Lord Google',
-          'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png'
-      );`)
+    await db.query(SEED_DB_SQL);
   })
 
   afterEach(async () => {
@@ -66,6 +50,11 @@ describe("Company model", function () {
     test("throws error if min_employees > max_employees", function () {
       let response = Company.search("face", 10000, 9000);
       expect(response).rejects.toThrowError(new Error("Min employees must be less than max employees."));
+    });
+
+    test("throws error if company does not exist", function () {
+      let response = Company.search("WARBLGARBL", 0, 9000);
+      expect(response).rejects.toThrowError(new Error("No companies found."));
     });
 
   });
@@ -146,4 +135,25 @@ describe("Company model", function () {
       expect(response).rejects.toThrowError(new Error("Company not found."));
     });
   });
+
+  describe("Company.getJobs", function () {
+
+    test("gets jobs for a company", async function () {
+      let jobs = await Company.getJobs("FB");
+      expect(jobs).toEqual([{
+        id: expect.any(Number),
+        title: 'Software Engineer',
+        salary: 150000,
+        equity: 0.000001,
+        company_handle: 'FB',
+        date_posted: expect.any(Date)
+      }])
+    })
+
+    test("throws error if no jobs found", function () {
+      let response = Company.getJobs("WeChat");
+      expect(response).rejects.toThrowError(new Error("No jobs found."));
+    });
+  });
+
 });

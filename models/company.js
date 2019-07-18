@@ -114,6 +114,26 @@ class Company {
 
     return { message: "Company deleted" }
   }
+
+  /** get a job by company
+ * 
+ * (company_handle) => [job, ...]
+ * 
+ */
+  static async getJobs(company_handle) {
+    let result = await db.query(
+      `SELECT * FROM jobs
+      WHERE company_handle = $1;
+      `,
+      [company_handle]
+    );
+
+    if (result.rowCount === 0) {
+      throw new Error("No jobs found.");
+    }
+
+    return result.rows;
+  }
 }
 
 module.exports = Company;

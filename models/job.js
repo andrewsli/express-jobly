@@ -28,7 +28,7 @@ class Job {
     }
 
     if (jobs.rowCount === 0) {
-      throw new Error(`No jobs found.`)
+      throw new Error(`Job not found.`)
     };
 
     return jobs.rows;
@@ -40,25 +40,22 @@ class Job {
    * 
    */
   static async create(title, salary, equity, company_handle) {
-    try {
-      let jobExists = await db.query(
-        `SELECT * FROM jobs
+    let jobExists = await db.query(
+      `SELECT * FROM jobs
         WHERE title = $1 AND company_handle = $2`,
-        [title, company_handle]
-      );
-      if (jobExists.rows[0]){
-        throw new Error("Job already posted.");
-      }
-      let job = await db.query(
-        `INSERT INTO jobs (title, salary, equity, company_handle)
-        VALUES ($1, $2, $3, $4)
-        RETURNING *;`,
-        [title, salary, equity, company_handle]
-      );
-      return job.rows[0];
-    } catch (err) {
+      [title, company_handle]
+    );
+    if (jobExists.rows[0]) {
       throw new Error("Job already posted.");
     }
+    let job = await db.query(
+      `INSERT INTO jobs (title, salary, equity, company_handle)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *;`,
+      [title, salary, equity, company_handle]
+    );
+    return job.rows[0];
+
   }
 
   /** get a job by id
@@ -120,8 +117,8 @@ class Job {
 
     return { message: "Job deleted" }
   }
-}
 
+}
 
 
 module.exports = Job;

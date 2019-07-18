@@ -20,7 +20,51 @@ if (process.env.NODE_ENV === "test") {
   DB_URI = process.env.DATABASE_URL || "jobly";
 }
 
+const SEED_DB_SQL = `INSERT INTO companies
+VALUES (
+    'FB',
+    'Facebook',
+    35000,
+    'Social media giant',
+    'https://image.flaticon.com/icons/png/512/124/124010.png'
+);
+
+INSERT INTO companies
+VALUES (
+    'G',
+    'Google',
+    72000,
+    'Lord Google',
+    'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png'
+);
+
+INSERT INTO jobs (title, salary, equity, company_handle)
+VALUES (
+    'Software Engineer',
+    150000.00,
+    .000001,
+    'FB'
+);
+
+INSERT INTO jobs (title, salary, equity, company_handle)
+VALUES (
+    'CEO',
+    15000000.00,
+    .10,
+    'G'
+);
+
+INSERT INTO jobs (id, title, salary, equity, company_handle)
+VALUES (
+    9999999,
+    'Social Media Intern',
+    65000.00,
+    0,
+    'G'
+);`;
+
 module.exports = {
+  SEED_DB_SQL,
   SECRET_KEY,
   PORT,
   DB_URI

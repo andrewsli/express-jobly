@@ -4,27 +4,11 @@ const request = require("supertest");
 // app imports
 const app = require("../../app");
 const db = require("../../db");
+const {SEED_DB_SQL} = require("../../config");
 
 beforeEach(async () => {
   await db.query(`DELETE FROM companies;`);
-  await db.query(
-    `INSERT INTO companies
-    VALUES (
-        'FB',
-        'Facebook',
-        35000,
-        'Social media giant',
-        'https://image.flaticon.com/icons/png/512/124/124010.png'
-    );
-    
-    INSERT INTO companies
-    VALUES (
-        'G',
-        'Google',
-        72000,
-        'Lord Google',
-        'https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png'
-    );`)
+  await db.query(SEED_DB_SQL);
 })
 
 afterEach(async () => {
@@ -66,10 +50,14 @@ describe("GET /companies", function () {
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
       companies:
-        [{"handle": "FB",
-          "name": "Facebook"},
-        {"handle": "G",
-          "name": "Google"}]
+        [{
+          "handle": "FB",
+          "name": "Facebook"
+        },
+        {
+          "handle": "G",
+          "name": "Google"
+        }]
     });
   });
 
@@ -78,8 +66,10 @@ describe("GET /companies", function () {
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
       companies:
-        [{"handle": "FB",
-          "name": "Facebook"}]
+        [{
+          "handle": "FB",
+          "name": "Facebook"
+        }]
     });
   });
 
@@ -97,13 +87,23 @@ describe("GET /companies", function () {
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
-      company: {
-        handle: "FB",
-        name: "Facebook",
-        num_employees: 35000,
-        description: "Social media giant",
-        logo_url: "https://image.flaticon.com/icons/png/512/124/124010.png"
-      }
+      "company": {
+        "handle": "FB",
+        "name": "Facebook",
+        "num_employees": 35000,
+        "description": "Social media giant",
+        "logo_url": "https://image.flaticon.com/icons/png/512/124/124010.png"
+      },
+      "jobs": [
+        {
+          "id": expect.any(Number),
+          "title": "Software Engineer",
+          "salary": 150000,
+          "equity": 0.000001,
+          "company_handle": "FB",
+          "date_posted": "2019-07-18T07:00:00.000Z"
+        }
+      ]
     });
   });
 

@@ -32,11 +32,11 @@
       },
       "equity": {
         "$id": "#/properties/equity",
-        "type": "integer",
+        "type": "number",
         "title": "The Equity Schema",
         "default": 0,
         "examples": [
-          0
+          0.1
         ]
       },
       "company_handle": {
