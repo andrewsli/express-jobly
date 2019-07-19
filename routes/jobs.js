@@ -4,6 +4,7 @@ const ExpressError = require("../helpers/expressError");
 const router = express.Router();
 const Job = require("../models/job");
 const jsonschema = require('jsonschema');
+const {ensureAdminUser, ensureLoggedIn} = require("../middleware/auth");
 
 const createJobSchema = require('../schemas/createJobSchema.json');
 const updateJobSchema = require('../schemas/updateJobSchema.json');
@@ -18,7 +19,7 @@ app.use(express.json());
  * Can pass in optional parameters: search (str, searches by title), min_salary (int), min_equity (int)
  * 
  **/
-router.get('/', async function (req, res, next) {
+router.get('/', ensureLoggedIn, async function (req, res, next) {
   let search = req.query.search;
   let min_salary = +req.query.min_salary || req.query.min_salary;
   let min_equity = +req.query.min_equity || req.query.min_equity;
@@ -32,7 +33,7 @@ router.get('/', async function (req, res, next) {
  * {title, salary, equity, company_handle} => {job: jobData}
  *
  **/
-router.post('/', async function (req, res, next) {
+router.post('/', ensureAdminUser, async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, createJobSchema);
 
@@ -57,7 +58,7 @@ router.post('/', async function (req, res, next) {
  * => {job: jobData}
  *
  **/
-router.get('/:id', async function (req, res, next) {
+router.get('/:id', ensureLoggedIn, async function (req, res, next) {
   try {
     id = req.params.id;
     let job = await Job.get(id);
@@ -74,7 +75,7 @@ router.get('/:id', async function (req, res, next) {
  * {job: jobData}
  * 
  */
-router.patch('/:id', async function (req, res, next) {
+router.patch('/:id', ensureAdminUser, async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, updateJobSchema);
 
@@ -98,7 +99,7 @@ router.patch('/:id', async function (req, res, next) {
  * => {message: "Job deleted"}
  * 
  */
-router.delete('/:id', async function (req, res, next) {
+router.delete('/:id', ensureAdminUser, async function (req, res, next) {
   try {
     let result = await Job.delete(req.params.id);
     return res.json(result);

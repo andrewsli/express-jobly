@@ -4,6 +4,11 @@ const ExpressError = require("../helpers/expressError");
 const router = express.Router();
 const User = require("../models/user");
 const jsonschema = require('jsonschema');
+const jwt = require("jsonwebtoken");
+const { SECRET_KEY } = require("../config");
+const {ensureLoggedIn, ensureCorrectUser} = require("../middleware/auth");
+const db = require("../db");
+
 
 const createUserSchema = require('../schemas/createUserSchema.json');
 const updateUserSchema = require('../schemas/updateUserSchema.json');
@@ -42,10 +47,13 @@ router.post('/', async function (req, res, next) {
       email,
       photo_url
     } = req.body;
+
     let user = await User.create(username, password, first_name, last_name, email, photo_url);
+    let token = jwt.sign({ username }, SECRET_KEY);
 
     return res.json({
-      user
+      user,
+      token
     });
   } catch (err) {
     let formattedError = new ExpressError(err.message, 400);
@@ -76,7 +84,7 @@ router.get('/:username', async function (req, res, next) {
  * {username, password, first_name, last_name, email, photo_url} => {user: user}
  * 
  */
-router.patch('/:username', async function (req, res, next) {
+router.patch('/:username', ensureCorrectUser, async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, updateUserSchema);
 
@@ -107,7 +115,7 @@ router.patch('/:username', async function (req, res, next) {
  * => {message: "User deleted"}
  * 
  */
-router.delete('/:username', async function (req, res, next) {
+router.delete('/:username', ensureCorrectUser, async function (req, res, next) {
   try {
     let result = await User.delete(req.params.username);
     return res.json(result);
