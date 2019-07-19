@@ -9,12 +9,14 @@ const Job = require("../../models/job");
 describe("Job model", function () {
 
   beforeEach(async () => {
+    await db.query(`DELETE FROM users;`);
     await db.query(`DELETE FROM companies;`);
     await db.query(SEED_DB_SQL);
   });
 
   afterEach(async () => {
-    await db.query(`DELETE FROM companies`);
+    await db.query(`DELETE FROM users;`);
+    await db.query(`DELETE FROM companies;`);
   });
 
   afterAll(async () => {

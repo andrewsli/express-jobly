@@ -10,12 +10,14 @@ const {SEED_DB_SQL} = require("../../config");
 describe("Company model", function () {
 
   beforeEach(async () => {
+    await db.query(`DELETE FROM users;`);
     await db.query(`DELETE FROM companies;`);
     await db.query(SEED_DB_SQL);
   })
 
   afterEach(async () => {
-    await db.query(`DELETE FROM companies`);
+    await db.query(`DELETE FROM users;`);
+    await db.query(`DELETE FROM companies;`);
   });
 
   afterAll(async () => {

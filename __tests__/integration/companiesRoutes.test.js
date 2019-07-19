@@ -8,11 +8,13 @@ const {SEED_DB_SQL} = require("../../config");
 
 beforeEach(async () => {
   await db.query(`DELETE FROM companies;`);
+  await db.query(`DELETE FROM users;`);
   await db.query(SEED_DB_SQL);
 })
 
 afterEach(async () => {
   await db.query(`DELETE FROM companies`);
+  await db.query(`DELETE FROM users;`);
 });
 
 afterAll(async () => {
@@ -101,7 +103,7 @@ describe("GET /companies", function () {
           "salary": 150000,
           "equity": 0.000001,
           "company_handle": "FB",
-          "date_posted": "2019-07-18T07:00:00.000Z"
+          "date_posted": expect.any(String)
         }
       ]
     });
