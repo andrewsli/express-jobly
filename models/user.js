@@ -2,7 +2,9 @@
 const db = require("../db");
 const sqlForPartialUpdate = require("../helpers/partialUpdate");
 const bcrypt = require("bcrypt");
-const {BCRYPT_WORK_FACTOR} = require("../config");
+const {
+  BCRYPT_WORK_FACTOR
+} = require("../config");
 
 class User {
 
@@ -54,7 +56,7 @@ class User {
       FROM users
       WHERE username = $1;`,
       [username]
-      );
+    );
 
     if (user.rows.length === 0) {
       return [];
@@ -64,21 +66,33 @@ class User {
   }
 
 
-  /** update a user by usernam
+  /** update a user by username
    * 
    * (username, {username, first_name, last_name, email, photo_url}) =>
    * {username, first_name, last_name, email, photo_url}
    * 
    */
   static async update(username, items) {
-    let sqlQuery = sqlForPartialUpdate('users', items, 'username', username);
-    let user = await db.query(sqlQuery.query, sqlQuery.values);
 
-    if (user.rowCount === 0) {
-      throw new Error(`Job not found.`);
+    // Check if trying to update username
+    if (items.username) {
+      let user = await User.get(items.username);
+
+      // If username already exists, throw error
+      if (user) {
+        throw new Error(`Username already exists.`);
+      }
+    } else {
+      // Update user
+      let sqlQuery = sqlForPartialUpdate('users', items, 'username', username);
+      let user = await db.query(sqlQuery.query, sqlQuery.values);
+
+      if (user.rowCount === 0) {
+        throw new Error(`User not found.`);
+      }
+
+      return user.rows[0];
     }
-
-    return user.rows[0];
   }
 
 
@@ -89,7 +103,7 @@ class User {
    */
   static async delete(username) {
     let result = await db.query(
-      `DELETE FROM user
+      `DELETE FROM users
       WHERE username = $1
       RETURNING *`,
       [username]
@@ -99,7 +113,9 @@ class User {
       throw new Error("User not found.");
     }
 
-    return { message: "User deleted" }
+    return {
+      message: "User deleted"
+    }
   }
 }
 

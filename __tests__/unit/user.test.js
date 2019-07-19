@@ -2,9 +2,12 @@ process.env.NODE_ENV = "test";
 // npm packages
 const request = require("supertest");
 // app imports
-const { SEED_DB_SQL } = require("../../config");
+const {
+  SEED_DB_SQL
+} = require("../../config");
 const db = require("../../db");
 const User = require("../../models/user");
+
 
 describe("User model", function () {
 
@@ -44,75 +47,123 @@ describe("User model", function () {
       try {
         await User.create("testuser", "testpass", "taco", "burrito", "taco@burrito.com", "taco.jpg");
       } catch (err) {
-        console.log('ERRORRRR', err)
         expect(err.message).toEqual("Username already taken.");
       }
     });
 
   });
+
+
+  describe("User.getAll", function () {
+
+    test("gets all users", async function () {
+      let response = await User.getAll();
+
+      expect(response).toEqual([{
+          username: 'testy',
+          first_name: 'test',
+          last_name: 'user',
+          email: 'mctest@gmail.com'
+        },
+        {
+          username: 'user2',
+          first_name: 'User',
+          last_name: '2',
+          email: 'user2@gmail.com'
+        }
+      ]);
+    });
+    // returns an empty array if there are no users
+  });
+
+
+  describe("User.get", function () {
+
+    test("gets a user", async function () {
+      let response = await User.get('testy');
+
+      expect(response).toEqual({
+        username: 'testy',
+        first_name: 'test',
+        last_name: 'user',
+        email: 'mctest@gmail.com',
+        photo_url: 'testuser.jpg'
+      });
+    });
+
+    test("throws error if user does not exist", async function () {
+      try {
+        await User.get('notrealuser');
+      } catch (err) {
+        expect(err.message).toEqual("User not found.");
+      }
+    });
+  });
+
+
+  describe("User.update", function () {
+
+    test("updates a user", async function () {
+      let response = await User.update('testy', {
+        last_name: 'mctest'
+      });
+
+      expect(response).toEqual({
+        username: 'testy',
+        password: 'password',
+        first_name: 'test',
+        last_name: 'mctest',
+        email: 'mctest@gmail.com',
+        photo_url: 'testuser.jpg',
+        is_admin: false
+      });
+    });
+
+    test("throws error if trying to update username to something that already exists", async function() {
+      try {
+        await User.update('user2', {
+          username: 'testy'
+        });
+      } catch (err) {
+        expect(err.message).toEqual("Username already exists.");
+      }
+    })
+
+    test("throws error if user does not exist", async function () {
+      try {
+        await User.update('notrealuser', {
+          first_name: 'burrito'
+        });
+      } catch (err) {
+        expect(err.message).toEqual("User not found.");
+      }
+    });
+  });
+
+
+  describe("User.delete", function () {
+
+    test("deletes a user", async function () {
+      let response = await User.delete("testy");
+      expect(response).toEqual({
+        message: 'User deleted'
+      });
+    });
+
+    test("throws error if user does not exist", async function () {
+      try {
+        await User.delete("notrealuser");
+      } catch (err) {
+        expect(err.message).toEqual("User not found.");
+      }
+    });
+  })
+
 });
 
-// describe("Job.get", function () {
 
-//   test("gets a job", async function () {
-//     let response = await Job.get(9999999);
 
-//     expect(response).toEqual({
-//       id: 9999999,
-//       title: 'Social Media Intern',
-//       salary: 65000.00,
-//       equity: 0,
-//       company_handle: 'G',
-//       date_posted: expect.any(Date)
-//     });
-//   });
 
-//   test("throws error if job does not exist", async function () {
-//     try {
-//       await Job.get(1);
-//     } catch (err) {
-//       expect(err.message).toEqual("Job not found.");
-//     }
-//   });
 
-// });
 
-// describe("Job.update", function () {
-
-//   test("updates a job", async function () {
-//     let response = await Job.update(9999999, { salary: 70000 });
-
-//     expect(response).toEqual({
-//       id: 9999999,
-//       title: 'Social Media Intern',
-//       salary: 70000.00,
-//       equity: 0,
-//       company_handle: 'G',
-//       date_posted: expect.any(Date)
-//     });
-//   });
-
-//   test("throws error if job does not exist", async function () {
-//     try {
-//       await Job.update(1, { salary: 70000 });
-//     } catch (err) {
-//       expect(err.message).toEqual("Job not found.");
-//     }
-//   });
-// });
-
-// describe("Job.delete", function () {
-
-//   test("deletes a job", async function () {
-//     let response = await Job.delete(9999999);
-//     expect(response).toEqual({ message: 'Job deleted' });
-//   });
-
-//   test("throws error if job does not exist", async function () {
-//     try {
-//       await Job.delete(1);
-//     } catch (err) {
-//       expect(err.message).toEqual("Job not found.");
-//     }
-//   });
-// });
+;

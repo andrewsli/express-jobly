@@ -74,6 +74,17 @@ VALUES (
     'mctest@gmail.com',
     'testuser.jpg',
     'false'
+);
+
+INSERT INTO users
+VALUES (
+    'user2',
+    'secret',
+    'User',
+    '2',
+    'user2@gmail.com',
+    'user.jpg',
+    'true'
 );`;
 
 module.exports = {
