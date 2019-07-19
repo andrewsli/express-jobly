@@ -20,6 +20,8 @@ if (process.env.NODE_ENV === "test") {
   DB_URI = process.env.DATABASE_URL || "jobly";
 }
 
+const BCRYPT_WORK_FACTOR = 12;
+
 const SEED_DB_SQL = `INSERT INTO companies
 VALUES (
     'FB',
@@ -61,9 +63,21 @@ VALUES (
     65000.00,
     0,
     'G'
+);
+
+INSERT INTO users
+VALUES (
+    'testy',
+    'password',
+    'test',
+    'user',
+    'mctest@gmail.com',
+    'testuser.jpg',
+    'false'
 );`;
 
 module.exports = {
+  BCRYPT_WORK_FACTOR,
   SEED_DB_SQL,
   SECRET_KEY,
   PORT,
