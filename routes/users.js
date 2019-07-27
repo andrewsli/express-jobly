@@ -87,7 +87,6 @@ router.get('/:username', async function (req, res, next) {
 router.patch('/:username', ensureCorrectUser, async function (req, res, next) {
   try {
     const result = jsonschema.validate(req.body, updateUserSchema);
-
     if (!result.valid) {
       let listOfErrors = result.errors.map(error => error.stack);
       let error = new ExpressError(listOfErrors, 400);

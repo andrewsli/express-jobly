@@ -3,13 +3,20 @@ process.env.NODE_ENV = "test";
 const request = require("supertest");
 // app imports
 const app = require("../../app");
+const jwt = require("jsonwebtoken");
 const db = require("../../db");
 const {SEED_DB_SQL} = require("../../config");
+
+const { SECRET_KEY } = require("../../config");
+let testAdminToken;
 
 beforeEach(async () => {
   await db.query(`DELETE FROM companies;`);
   await db.query(`DELETE FROM users;`);
   await db.query(SEED_DB_SQL);
+  let testAdminResult = await db.query(`SELECT * FROM users WHERE username = 'user2'`)
+  let testAdmin = testAdminResult.rows[0];
+  testAdminToken = jwt.sign(testAdmin, SECRET_KEY);
 })
 
 afterEach(async () => {
@@ -24,7 +31,7 @@ afterAll(async () => {
 describe("GET /companies", function () {
 
   test("searches all companies with no params passed", async function () {
-    let response = await request(app).get(`/companies`);
+    let response = await request(app).get(`/companies`).send({_token: testAdminToken});
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
@@ -35,7 +42,7 @@ describe("GET /companies", function () {
   });
 
   test("searches companies with all parameters passed: search, min_employees, max_employees", async function () {
-    let response = await request(app).get(`/companies?search=face&min_employees=10000&max_employees=50000`);
+    let response = await request(app).get(`/companies?search=face&min_employees=10000&max_employees=50000`).send({_token: testAdminToken});
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
@@ -48,7 +55,7 @@ describe("GET /companies", function () {
   });
 
   test("searches companies with only min_employees passed", async function () {
-    let response = await request(app).get(`/companies?min_employees=10000`);
+    let response = await request(app).get(`/companies?min_employees=10000`).send({_token: testAdminToken});
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
       companies:
@@ -64,7 +71,7 @@ describe("GET /companies", function () {
   });
 
   test("searches companies with only max_employees passed", async function () {
-    let response = await request(app).get(`/companies?max_employees=50000`);
+    let response = await request(app).get(`/companies?max_employees=50000`).send({_token: testAdminToken});
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
       companies:
@@ -76,7 +83,7 @@ describe("GET /companies", function () {
   });
 
   test("throws error if min_employees > max_employees", async function () {
-    let response = await request(app).get(`/companies?search=face&min_employees=10000&max_employees=9000`);
+    let response = await request(app).get(`/companies?search=face&min_employees=10000&max_employees=9000`).send({_token: testAdminToken});
     expect(response.statusCode).toBe(400);
     expect(response.body).toEqual({
       status: 400,
@@ -85,7 +92,7 @@ describe("GET /companies", function () {
   });
 
   test("searches for a specific company", async function () {
-    let response = await request(app).get(`/companies/FB`);
+    let response = await request(app).get(`/companies/FB`).send({_token: testAdminToken});
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
@@ -110,7 +117,7 @@ describe("GET /companies", function () {
   });
 
   test("throws error if searching for company that does not exist", async function () {
-    let response = await request(app).get(`/companies/fakecompany`);
+    let response = await request(app).get(`/companies/fakecompany`).send({_token: testAdminToken});
 
     expect(response.statusCode).toBe(400);
     expect(response.body).toEqual({ message: "Company not found.", status: 400, });
@@ -127,7 +134,8 @@ describe('POST /companies', function () {
         handle: "twitch",
         name: "Twitch",
         num_employees: 1234,
-        description: "Streaming platform for gamers"
+        description: "Streaming platform for gamers",
+        _token: testAdminToken
       });
 
     expect(response.statusCode).toBe(200);
@@ -140,7 +148,7 @@ describe('POST /companies', function () {
         logo_url: null
       }
     });
-    let companies = await request(app).get('/companies');
+    let companies = await request(app).get('/companies').send({_token: testAdminToken});
     expect(companies.body.companies.length).toEqual(3);
   });
 
@@ -151,6 +159,7 @@ describe('POST /companies', function () {
         handle: "FB",
         name: "Facebook",
         num_employees: 1234,
+        _token: testAdminToken,
       });
 
     expect(response.statusCode).toBe(400);
@@ -163,7 +172,8 @@ describe('POST /companies', function () {
       .send({
         handle: "twitch",
         num_employees: '1234',
-        description: 1
+        description: 1,
+        _token: testAdminToken,
       });
 
     expect(response.statusCode).toBe(400);
@@ -184,7 +194,8 @@ describe('PATCH /companies/:handle', function () {
       .patch('/companies/FB')
       .send({
         num_employees: 40000,
-        description: 'Fined $5 billion'
+        description: 'Fined $5 billion',
+        _token: testAdminToken,
       });
 
     expect(response.statusCode).toBe(200);
@@ -204,7 +215,8 @@ describe('PATCH /companies/:handle', function () {
       .patch('/companies/fakeCompany')
       .send({
         num_employees: 40000,
-        description: 'Fined $5 billion'
+        description: 'Fined $5 billion',
+        _token: testAdminToken,
       });
     expect(response.statusCode).toBe(404);
     expect(response.body).toEqual({ message: "Company not found.", status: 404 });
@@ -215,7 +227,8 @@ describe('PATCH /companies/:handle', function () {
       .patch('/companies/FB')
       .send({
         num_employees: '1234',
-        description: 1
+        description: 1,
+        _token: testAdminToken,
       });
 
     expect(response.statusCode).toBe(400);
@@ -231,13 +244,13 @@ describe('PATCH /companies/:handle', function () {
 describe('DELETE /companies/:handle', function () {
 
   test('delete a company', async function () {
-    let response = await request(app).delete('/companies/FB');
+    let response = await request(app).delete('/companies/FB').send({_token: testAdminToken});
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ message: "Company deleted" });
   });
 
   test('error message if company does not exist', async function () {
-    let response = await request(app).delete('/companies/faker');
+    let response = await request(app).delete('/companies/faker').send({_token: testAdminToken});
     expect(response.statusCode).toBe(404);
     expect(response.body).toEqual({ message: "Company not found.", status: 404 });
   })

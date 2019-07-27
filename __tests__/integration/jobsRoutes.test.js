@@ -5,12 +5,20 @@ const request = require("supertest");
 const app = require("../../app");
 const db = require("../../db");
 const {SEED_DB_SQL} = require("../../config");
+const jwt = require("jsonwebtoken");
+const { SECRET_KEY } = require("../../config");
+
+let testAdminToken;
+
 
 
 beforeEach(async () => {
   await db.query(`DELETE FROM companies;`);
   await db.query(`DELETE FROM users`);
   await db.query(SEED_DB_SQL);
+  let testAdminResult = await db.query(`SELECT * FROM users WHERE username = 'user2'`)
+  let testAdmin = testAdminResult.rows[0];
+  testAdminToken = jwt.sign(testAdmin, SECRET_KEY);
 });
 
 afterEach(async () => {
@@ -24,7 +32,7 @@ afterAll(async () => {
 describe("GET /jobs", function () {
 
   test("searches all jobs with no params passed", async function () {
-    let response = await request(app).get(`/jobs`);
+    let response = await request(app).get(`/jobs`).send({_token: testAdminToken});
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
@@ -36,14 +44,14 @@ describe("GET /jobs", function () {
   });
 
   test("searches jobs with all parameters passed: search, min_salary, min_equity", async function () {
-    let response = await request(app).get(`/jobs?search=ceo&min_salary=10000&min_equity=0.0001`);
+    let response = await request(app).get(`/jobs?search=ceo&min_salary=10000&min_equity=0.0001`).send({_token: testAdminToken});
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ jobs: [{ title: 'CEO', company_handle: 'G' }] });
   });
 
   test("searches jobs with only min_salary passed", async function () {
-    let response = await request(app).get(`/jobs?min_salary=100000`);
+    let response = await request(app).get(`/jobs?min_salary=100000`).send({_token: testAdminToken});
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
       jobs:
@@ -53,13 +61,13 @@ describe("GET /jobs", function () {
   });
 
   test("searches jobs with only min_equity passed", async function () {
-    let response = await request(app).get(`/jobs?min_equity=0.001`);
+    let response = await request(app).get(`/jobs?min_equity=0.001`).send({_token: testAdminToken});
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ jobs: [{ title: 'CEO', company_handle: 'G' }] });
   });
 
   test("searches for a specific job", async function () {
-    let response = await request(app).get(`/jobs/9999999`);
+    let response = await request(app).get(`/jobs/9999999`).send({_token: testAdminToken});
 
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({
@@ -76,7 +84,7 @@ describe("GET /jobs", function () {
   });
 
   test("expect error message if searching for job that does not exist", async function () {
-    let response = await request(app).get(`/jobs/1`);
+    let response = await request(app).get(`/jobs/1`).send({_token: testAdminToken});
     expect(response.statusCode).toBe(400);
     expect(response.body).toEqual({ message: "Job not found.", status: 400, });
   });
@@ -92,7 +100,8 @@ describe('POST /jobs', function () {
         title: 'Janitor',
         salary: 50000,
         equity: 0,
-        company_handle: 'G'
+        company_handle: 'G',
+        _token: testAdminToken
       });
 
     expect(response.statusCode).toBe(200);
@@ -106,7 +115,7 @@ describe('POST /jobs', function () {
         date_posted: expect.any(String)
       }
     });
-    let jobs = await request(app).get('/jobs');
+    let jobs = await request(app).get('/jobs').send({_token: testAdminToken});
     expect(jobs.body.jobs.length).toEqual(4);
   });
 
@@ -118,6 +127,7 @@ describe('POST /jobs', function () {
         salary: 2500000,
         equity: .09,
         company_handle: "G",
+        _token: testAdminToken,
       });
 
     expect(response.statusCode).toBe(400);
@@ -132,6 +142,7 @@ describe('POST /jobs', function () {
         salary: '1 million',
         equity: 'zero',
         company_handle: "G",
+        _token: testAdminToken,
       });
 
     expect(response.statusCode).toBe(400);
@@ -153,6 +164,7 @@ describe('PATCH /jobs/:id', function () {
         title: "Assistant",
         salary: 55000,
         equity: 0,
+        _token: testAdminToken,
       });
 
     expect(response.statusCode).toBe(200);
@@ -175,6 +187,7 @@ describe('PATCH /jobs/:id', function () {
         title: "Assistant",
         salary: 55000,
         equity: 0,
+        _token: testAdminToken,
       });
     expect(response.statusCode).toBe(404);
     expect(response.body).toEqual({ message: "Job not found.", status: 404 });
@@ -187,6 +200,7 @@ describe('PATCH /jobs/:id', function () {
         title: 5432,
         salary: "55000",
         equity: "1%",
+        _token: testAdminToken,
       });
 
     expect(response.statusCode).toBe(400);
@@ -203,13 +217,13 @@ describe('PATCH /jobs/:id', function () {
 describe('DELETE /jobs/:id', function () {
 
   test('delete a job', async function () {
-    let response = await request(app).delete('/jobs/9999999');
+    let response = await request(app).delete('/jobs/9999999').send({_token: testAdminToken});
     expect(response.statusCode).toBe(200);
     expect(response.body).toEqual({ message: "Job deleted" });
   });
 
   test('error message if job does not exist', async function () {
-    let response = await request(app).delete('/jobs/1');
+    let response = await request(app).delete('/jobs/1').send({_token: testAdminToken});
     expect(response.statusCode).toBe(404);
     expect(response.body).toEqual({ message: "Job not found.", status: 404 });
   })
@@ -219,7 +233,7 @@ describe('DELETE /jobs/:id', function () {
 describe('404 error handler', function () {
 
   test('reaches 404 requesting invalid page', async function () {
-    let response = await request(app).post('/jobs/engineer');
+    let response = await request(app).post('/jobs/engineer').send({_token: testAdminToken});
     expect(response.statusCode).toBe(404);
     expect(response.body).toEqual({ status: 404, message: 'Not Found' });
   });
